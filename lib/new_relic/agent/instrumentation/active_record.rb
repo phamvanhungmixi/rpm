@@ -18,10 +18,12 @@ module NewRelic
 
         def self.insert_instrumentation
           if defined?(::ActiveRecord::VERSION::MAJOR) && ::ActiveRecord::VERSION::MAJOR.to_i >= 3
+            ::NewRelic::Agent.logger.info 'if defined?(::ActiveRecord::VERSION::MAJOR) && ::ActiveRecord::VERSION::MAJOR.to_i >= 3 Is Rails'
             ::NewRelic::Agent::Instrumentation::ActiveRecordHelper.instrument_additional_methods
           end
 
           ::ActiveRecord::ConnectionAdapters::AbstractAdapter.module_eval do
+            ::NewRelic::Agent.logger.info 'ActiveRecord::ConnectionAdapters::AbstractAdapter.module_eval Is Rails'
             include ::NewRelic::Agent::Instrumentation::ActiveRecord
           end
         end
@@ -44,22 +46,24 @@ module NewRelic
           end
 
           sql, name, _ = args
+          ::NewRelic::Agent.logger.info 'Metric Start'
           metrics = ActiveRecordHelper.metrics_for(
             NewRelic::Helper.correctly_encoded(name),
             NewRelic::Helper.correctly_encoded(sql),
             @config && @config[:adapter])
-
+          ::NewRelic::Agent.logger.info "Metric Sql #{sql}"
+          ::NewRelic::Agent.logger.info "Metric Config #{@config}"
           # It is critical that we grab this name before trace_execution_scoped
           # because that method mutates the metrics list passed in.
           scoped_metric = metrics.first
-
+          ::NewRelic::Agent.logger.info "Metric First #{scoped_metric}"
           NewRelic::Agent::MethodTracer.trace_execution_scoped(metrics) do
             t0 = Time.now
             begin
               log_without_newrelic_instrumentation(*args, &block)
             ensure
               elapsed_time = (Time.now - t0).to_f
-
+              ::NewRelic::Agent.logger.info "transaction_sampler notice_sql #{sql} #{elapsed_time} #{state} #{EXPLAINER}"
               NewRelic::Agent.instance.transaction_sampler.notice_sql(sql,
                                                     @config, elapsed_time,
                                                     state, EXPLAINER)
@@ -96,9 +100,11 @@ DependencyDetection.defer do
 
     if defined?(::Rails) && ::Rails::VERSION::MAJOR.to_i == 3
       ActiveSupport.on_load(:active_record) do
+        ::NewRelic::Agent.logger.info 'NewRelic::Agent::Instrumentation::ActiveRecord.insert_instrumentation Is Rails'
         ::NewRelic::Agent::Instrumentation::ActiveRecord.insert_instrumentation
       end
     else
+      ::NewRelic::Agent.logger.info 'NewRelic::Agent::Instrumentation::ActiveRecord.insert_instrumentation No Rails'
       ::NewRelic::Agent::Instrumentation::ActiveRecord.insert_instrumentation
     end
   end
