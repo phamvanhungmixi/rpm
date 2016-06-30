@@ -24,6 +24,7 @@ module NewRelic
 
           ::ActiveRecord::ConnectionAdapters::AbstractAdapter.module_eval do
             ::NewRelic::Agent.logger.info 'ActiveRecord::ConnectionAdapters::AbstractAdapter.module_eval Is Rails'
+            include ::ActiveRecord::Turntable::ActiveRecordExt::AbstractAdapter
             include ::NewRelic::Agent::Instrumentation::ActiveRecord
           end
         end
