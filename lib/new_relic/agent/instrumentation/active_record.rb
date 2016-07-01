@@ -99,9 +99,9 @@ DependencyDetection.defer do
   executes do
     require 'new_relic/agent/instrumentation/active_record_helper'
 
-    if (defined?(::Rails) && ::Rails::VERSION::MAJOR.to_i == 3) || defined?(::Padrino)
+    if defined?(::Rails) && ::Rails::VERSION::MAJOR.to_i == 3
       ActiveSupport.on_load(:active_record) do
-        ::NewRelic::Agent.logger.info 'NewRelic::Agent::Instrumentation::ActiveRecord.insert_instrumentation Is Rails or Padrino'
+        ::NewRelic::Agent.logger.info 'NewRelic::Agent::Instrumentation::ActiveRecord.insert_instrumentation Is Rails '
         ::NewRelic::Agent::Instrumentation::ActiveRecord.insert_instrumentation
       end
     else
