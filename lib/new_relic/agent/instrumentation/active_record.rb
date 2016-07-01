@@ -22,9 +22,6 @@ module NewRelic
           end
 
           ::ActiveRecord::ConnectionAdapters::AbstractAdapter.module_eval do
-            if defined?(::ActiveRecord::Turntable)
-              include ::ActiveRecord::Turntable::ActiveRecordExt::AbstractAdapter
-            end
             include ::NewRelic::Agent::Instrumentation::ActiveRecord
           end
         end
@@ -97,7 +94,7 @@ DependencyDetection.defer do
   executes do
     require 'new_relic/agent/instrumentation/active_record_helper'
 
-    if defined?(::Rails) && ::Rails::VERSION::MAJOR.to_i == 3
+    if ( defined?(::Rails) && ::Rails::VERSION::MAJOR.to_i == 3 ) || defined?(::Padrino)
       ActiveSupport.on_load(:active_record) do
         ::NewRelic::Agent::Instrumentation::ActiveRecord.insert_instrumentation
       end
